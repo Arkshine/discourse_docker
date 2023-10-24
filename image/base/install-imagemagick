@@ -26,8 +26,10 @@ apt -y -q install git make gcc pkg-config autoconf curl g++ yasm cmake \
     libltdl7-dev libbz2-dev gsfonts libtiff-dev libfreetype6-dev libjpeg-dev
 
 # Ubuntu doesn't like `bullseye-backports`
-# Ubuntu 18 doesn't have libaom-dev
 if cat /etc/issue | grep -qi 'Ubuntu 18'; then
+  apt -y install libheif1 libheif-dev
+
+  # Ubuntu 18 doesn't have libaom-dev
   git clone https://aomedia.googlesource.com/aom
   cd aom && git checkout v${LIB_AOM_VERSION} && cd ..
   mkdir build_aom && cd build_aom

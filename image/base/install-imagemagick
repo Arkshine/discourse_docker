@@ -23,7 +23,7 @@ apt -y -q install git make gcc pkg-config autoconf curl g++ yasm cmake \
     libltdl7-dev libbz2-dev gsfonts libtiff-dev libfreetype6-dev libjpeg-dev
 
 # Ubuntu doesn't like `bullseye-backports`
-if cat /etc/issue | grep -qiE 'Ubuntu 20|22'; then
+if cat /etc/issue | grep -qiE 'Ubuntu 18|20|22'; then
   apt -y install libheif1 libaom-dev libheif-dev
 else
   # Use backports instead of compiling it

@@ -6,7 +6,14 @@ IMAGE_MAGICK_VERSION="7.1.0-62"
 IMAGE_MAGICK_HASH="d282117bc6d0e91ad1ad685d096623b96ed8e229f911c891d83277b350ef884a"
 
 # AV1 Codec version: https://aomedia.googlesource.com/aom/
+# Ubuntu 18 only
 LIB_AOM_VERSION="3.6.1"
+
+# libheif: https://github.com/strukturag/libheif/releases
+# ImageMagick requires libheif >= 1.4.0
+# Ubuntu 18 only
+LIB_HEIF_VERSION="1.12.0"
+LIB_HEIF_HASH="086145b0d990182a033b0011caadb1b642da84f39ab83aa66d005610650b3c65"
 
 # We use debian, but GitHub CI is stuck on Ubuntu Bionic, so this must be compatible with both
 LIBJPEGTURBO=$(cat /etc/issue | grep -qi Debian && echo 'libjpeg62-turbo libjpeg62-turbo-dev' || echo 'libjpeg-turbo8 libjpeg-turbo8-dev')
@@ -16,6 +23,9 @@ LIBWEBP=$(cat /etc/issue | grep -qi 'Ubuntu 22' && echo 'libwebp7' || echo 'libw
 
 PREFIX=/usr/local
 WDIR=/tmp/imagemagick
+
+mkdir -p $WDIR
+cd $WDIR
 
 # Install build deps
 apt -y -q remove imagemagick
@@ -27,7 +37,16 @@ apt -y -q install git make gcc pkg-config autoconf curl g++ yasm cmake \
 
 # Ubuntu doesn't like `bullseye-backports`
 if cat /etc/issue | grep -qi 'Ubuntu 18'; then
-  apt -y install libheif1 libheif-dev
+  # ImageMagick requires libheif >= 1.4.0
+  wget -q -O $WDIR/libheif.tar.gz "https://github.com/strukturag/libheif/archive/v$LIB_HEIF_VERSION.tar.gz"
+  sha256sum $WDIR/libheif.tar.gz
+  echo "$LIB_HEIF_HASH $WDIR/libheif.tar.gz" | sha256sum -c
+  HFDIR=$WDIR/$(tar tzf $WDIR/libheif.tar.gz --wildcards "libheif-*/configure-ac" | cut -d/ -f1)
+  tar zxf $WDIR/libheif.tar.gz -C $WDIR
+  cd $HFDIR
+  ./autogen.sh
+  ./configure
+  make && make install 
 
   # Ubuntu 18 doesn't have libaom-dev
   git clone https://aomedia.googlesource.com/aom
@@ -35,16 +54,13 @@ if cat /etc/issue | grep -qi 'Ubuntu 18'; then
   mkdir build_aom && cd build_aom
   cmake ../aom/ -DENABLE_TESTS=0 -DBUILD_SHARED_LIBS=1
   make && make install
-  cd .. && rm -rf aom && rm -rf build_aom
+  cd ..
 elif cat /etc/issue | grep -qiE 'Ubuntu 20|22'; then
   apt -y install libheif1 libaom-dev libheif-dev
 else
   # Use backports instead of compiling it
   apt -y -q install -t bullseye-backports libheif1 libaom-dev libheif-dev
 fi
-
-mkdir -p $WDIR
-cd $WDIR
 
 # Build and install ImageMagick
 wget -q -O $WDIR/ImageMagick.tar.gz "https://github.com/ImageMagick/ImageMagick/archive/$IMAGE_MAGICK_VERSION.tar.gz"

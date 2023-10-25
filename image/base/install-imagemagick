@@ -41,7 +41,7 @@ if cat /etc/issue | grep -qi 'Ubuntu 18'; then
   wget -q -O $WDIR/libheif.tar.gz "https://github.com/strukturag/libheif/archive/v$LIB_HEIF_VERSION.tar.gz"
   sha256sum $WDIR/libheif.tar.gz
   echo "$LIB_HEIF_HASH $WDIR/libheif.tar.gz" | sha256sum -c
-  HFDIR=$WDIR/$(tar tzf $WDIR/libheif.tar.gz --wildcards "libheif-*/configure-ac" | cut -d/ -f1)
+  HFDIR=$WDIR/$(tar tzf $WDIR/libheif.tar.gz --wildcards "libheif-*/configure.ac" | cut -d/ -f1)
   tar zxf $WDIR/libheif.tar.gz -C $WDIR
   cd $HFDIR
   ./autogen.sh
